@@ -3,17 +3,17 @@ import pandas as pd
 import keras
 import tensorflow as tf
 
-spotify = pd.read_csv('C:\\Users\\cody1\\Downloads\\py tut\\rankers\\tracks_features.csv', engine='python', encoding='latin-1')
+spotify = pd.read_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\tracks_features.csv', engine='python', encoding='latin-1')
 #building a smaller dataframe that is smaller and easier to work with for ranking
 spotify_campare = spotify[['name','artists']]
 
 
-spotify_slim = pd.read_csv('C:\\Users\\cody1\\Downloads\\py tut\\rankers\\spotslim.csv', engine='python', encoding='latin-1')
+spotify_slim = pd.read_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\spotslim.csv', engine='python', encoding='latin-1')
 spotify_slim.set_index('name', inplace=True)
 
 #whereimat= spotify_slim[spotify_slim['rank']>0]
 codysrank = spotify_slim.iloc[:,2:]
-#codysrank.to_csv('C:\\Users\\cody1\\Downloads\\py tut\\rankers\\codysrank.csv')
+#codysrank.to_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\codysrank.csv')
 codysrankSM = codysrank[codysrank['rank']>0]
 
 ranked = codysrankSM.iloc[:,-2:]
@@ -72,14 +72,14 @@ for iteration in range(74):
         #ann.add(tf.keras.layers.Dropout(0.2))
         ann.add(tf.keras.layers.Dense(units=sec_layer[iteration], activation='relu'))
         
-    if iteration > 24 & iteration <= 48:
+    elif 24 < iteration<= 49:
         third_layer = iteration-24
         ann.add(tf.keras.layers.Dense(units=first_layer[iteration-25], activation='relu'))
         #ann.add(tf.keras.layers.Dropout(0.2))
         ann.add(tf.keras.layers.Dense(units=sec_layer[iteration-25], activation='relu'))
         ann.add(tf.keras.layers.Dense(units=third_layer, activation='relu'))
     
-    if iteration > 48:
+    elif iteration > 49:
         third_layer = iteration-48
         fourth_layer = iteration-48
         ann.add(tf.keras.layers.Dense(units=first_layer[iteration-49], activation='relu'))
@@ -94,7 +94,7 @@ for iteration in range(74):
     
     ann.compile(optimizer='adam' , loss= 'binary_crossentropy', validation_data=(X_train,y_train),metric= 'accuracy')
     #categorical_crossentropy
-    ann.fit(X_train, y_train, batch_size=1, epochs = 10, verbose=0)
+    ann.fit(X_train, y_train, batch_size=1, epochs = 200, verbose=0)
     
 
     #must be 2d array
@@ -129,6 +129,87 @@ for iteration in range(74):
             best_third = third_layer
             best_fourth = fourth_layer
             lowest_loss = np.mean(-np.log(np.sum(accuracy_test * y_test, axis=1)))
+            print('New best: ', lowest_loss)
+            print('First Layer: ', best_first)
+            print('Sec Layer: ', best_sec)
+            print('Third Layer:', best_third)
+            print('Best Fourth:', best_fourth)
+        
+    ann.reset_states() 
+    ann.reset_metrics()
+    
+'''random int'''
+'''rand int'''
+'''random int'''
+for iteration in range(160000):
+    first_layer = np.random.randint(7,26)
+    sec_layer = np.random.randint(7,26)
+    third_layer = np.random.randint(7,26)
+    fourth_layer = np.random.randint(7,26)
+    
+    print(iteration)
+    if iteration <= 399:        
+        ann.add(tf.keras.layers.Dense(units=first_layer, activation='relu'))
+        #ann.add(tf.keras.layers.Dropout(0.2))
+        ann.add(tf.keras.layers.Dense(units=sec_layer, activation='relu'))
+        
+    elif 399 < iteration <= 8000:
+        ann.add(tf.keras.layers.Dense(units=first_layer, activation='relu'))
+        #ann.add(tf.keras.layers.Dropout(0.2))
+        ann.add(tf.keras.layers.Dense(units=sec_layer, activation='relu'))
+        ann.add(tf.keras.layers.Dense(units=third_layer, activation='relu'))
+    
+    elif iteration > 8000:
+        ann.add(tf.keras.layers.Dense(units=first_layer, activation='relu'))
+        #ann.add(tf.keras.layers.Dropout(0.2))
+        ann.add(tf.keras.layers.Dense(units=sec_layer, activation='relu'))
+        ann.add(tf.keras.layers.Dense(units=third_layer, activation='relu'))
+        ann.add(tf.keras.layers.Dense(units=fourth_layer, activation='relu'))
+    
+    ann.add(tf.keras.layers.Dense(units=2, activation='sigmoid'))
+    #softmax
+    #try linear 
+    
+    ann.compile(optimizer='adam' , loss= 'binary_crossentropy', validation_data=(X_train,y_train),metric= 'accuracy')
+    #categorical_crossentropy
+    ann.fit(X_train, y_train, batch_size=1, epochs = 300, verbose=0)
+    
+
+    #must be 2d array
+    accuracy_test = ann.predict(X_test)
+    clip_pred = np.clip(accuracy_test, 1e-7, 1e-7)
+    loss = np.mean(-np.log(np.sum(clip_pred * y_test, axis=1)))
+    print('Loss: ', loss)
+    if iteration <= 399:
+        if loss < lowest_loss:
+            best_first = first_layer
+            best_sec = sec_layer
+            lowest_loss = loss
+            print('New best: ', lowest_loss)
+            print('First Layer: ', best_first)
+            print('Sec Layer: ', best_sec)
+            print('No Third Layer')
+            print('No Fourth Layer')
+
+    if 399 < iteration <= 8000:
+        if loss < lowest_loss:
+            best_first = first_layer
+            best_sec = sec_layer
+            best_third = third_layer
+            lowest_loss = loss
+            print('New best: ', lowest_loss)
+            print('First Layer: ', best_first)
+            print('Sec Layer: ', best_sec)
+            print('Third Layer:', best_third)
+            print('No Fourth Layer')
+            
+    if iteration > 8000:
+        if loss < lowest_loss:
+            best_first = first_layer
+            best_sec = sec_layer
+            best_third = third_layer
+            best_fourth = fourth_layer
+            lowest_loss = loss
             print('New best: ', lowest_loss)
             print('First Layer: ', best_first)
             print('Sec Layer: ', best_sec)
