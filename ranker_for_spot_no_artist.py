@@ -52,7 +52,8 @@ sc = StandardScaler()
 X_train = sc.fit_transform(X_train)
 X_test = sc.transform(X_test)
 
-
+for i in range(1,161):
+    print(i)
 ann = tf.keras.models.Sequential()
 lowest_loss = 99.
 
@@ -60,81 +61,158 @@ best_first = 0
 best_sec = 0
 best_third = 0
 best_fourth = 0
+best_fifth = 0
+best_sixth = 0
 
-for iteration in range(74):
-    first_layer = np.array(range(1,26,1))
-    sec_layer = np.array(range(1,26,1))
+for iteration in range(10,161):
+    first_layer = iteration
+    sec_layer = iteration
     third_layer = 0
+    fourth_layer = 0
+    fifth_layer = 0
+    sixth_layer = 0
     
     print(iteration)
-    if iteration <= 24:        
-        ann.add(tf.keras.layers.Dense(units=first_layer[iteration], activation='relu'))
+    if iteration <= 30: 
+        first_layer = iteration
+        sec_layer = iteration
+        ann.add(tf.keras.layers.Dense(units=first_layer, activation='relu'))
         #ann.add(tf.keras.layers.Dropout(0.2))
-        ann.add(tf.keras.layers.Dense(units=sec_layer[iteration], activation='relu'))
+        ann.add(tf.keras.layers.Dense(units=sec_layer, activation='relu'))
         
-    elif 24 < iteration<= 49:
-        third_layer = iteration-24
-        ann.add(tf.keras.layers.Dense(units=first_layer[iteration-25], activation='relu'))
+    elif 30 < iteration <= 59:
+        first_layer = iteration-30
+        sec_layer = iteration-30
+        third_layer = iteration-30
+        ann.add(tf.keras.layers.Dense(units=first_layer, activation='relu'))
         #ann.add(tf.keras.layers.Dropout(0.2))
-        ann.add(tf.keras.layers.Dense(units=sec_layer[iteration-25], activation='relu'))
+        ann.add(tf.keras.layers.Dense(units=sec_layer, activation='relu'))
         ann.add(tf.keras.layers.Dense(units=third_layer, activation='relu'))
     
-    elif iteration > 49:
-        third_layer = iteration-48
-        fourth_layer = iteration-48
-        ann.add(tf.keras.layers.Dense(units=first_layer[iteration-49], activation='relu'))
+    elif 59 < iteration <= 89:
+        first_layer = iteration-59
+        sec_layer = iteration-59
+        third_layer = iteration-59
+        fourth_layer = iteration-59
+        ann.add(tf.keras.layers.Dense(units=first_layer, activation='relu'))
         #ann.add(tf.keras.layers.Dropout(0.2))
-        ann.add(tf.keras.layers.Dense(units=sec_layer[iteration-49], activation='relu'))
+        ann.add(tf.keras.layers.Dense(units=sec_layer, activation='relu'))
         ann.add(tf.keras.layers.Dense(units=third_layer, activation='relu'))
         ann.add(tf.keras.layers.Dense(units=fourth_layer, activation='relu'))
     
+    elif  89 < iteration <= 119:
+        first_layer = iteration-89
+        sec_layer = iteration-89
+        third_layer = iteration-89
+        fourth_layer = iteration-89
+        fifth_layer = iteration-89
+        ann.add(tf.keras.layers.Dense(units=first_layer, activation='relu'))
+        #ann.add(tf.keras.layers.Dropout(0.2))
+        ann.add(tf.keras.layers.Dense(units=sec_layer, activation='relu'))
+        ann.add(tf.keras.layers.Dense(units=third_layer, activation='relu'))
+        ann.add(tf.keras.layers.Dense(units=fourth_layer, activation='relu')) 
+        ann.add(tf.keras.layers.Dense(units=fifth_layer, activation='relu')) 
+        
+    elif  119 < iteration <= 160:
+        first_layer = iteration-119
+        sec_layer = iteration-119
+        third_layer = iteration-119
+        fourth_layer = iteration-119
+        fifth_layer = iteration-119
+        sixth_layer = iteration-119
+        ann.add(tf.keras.layers.Dense(units=first_layer, activation='relu'))
+        #ann.add(tf.keras.layers.Dropout(0.2))
+        ann.add(tf.keras.layers.Dense(units=sec_layer, activation='relu'))
+        ann.add(tf.keras.layers.Dense(units=third_layer, activation='relu'))
+        ann.add(tf.keras.layers.Dense(units=fourth_layer, activation='relu')) 
+        ann.add(tf.keras.layers.Dense(units=fifth_layer, activation='relu')) 
+        ann.add(tf.keras.layers.Dense(units=sixth_layer, activation='relu')) 
+        
     ann.add(tf.keras.layers.Dense(units=2, activation='sigmoid'))
     #softmax
     #try linear 
     
     ann.compile(optimizer='adam' , loss= 'binary_crossentropy', validation_data=(X_train,y_train),metric= 'accuracy')
     #categorical_crossentropy
-    ann.fit(X_train, y_train, batch_size=1, epochs = 200, verbose=0)
+    ann.fit(X_train, y_train, batch_size=1, epochs = 100, verbose=0)
     
 
     #must be 2d array
     accuracy_test = ann.predict(X_test)
-    if iteration <= 24:
-        if np.mean(-np.log(np.sum(accuracy_test * y_test, axis=1))) < lowest_loss:
-            best_first = first_layer[iteration]
-            best_sec = sec_layer[iteration]
-            lowest_loss = np.mean(-np.log(np.sum(accuracy_test * y_test, axis=1)))
+    loss = np.mean(-np.log(np.sum(accuracy_test * y_test, axis=1)))   
+    accuracy = np.mean(np.argmax(accuracy_test, axis=1) == np.argmax(y_test, axis=1))
+    
+    print('Accuracy: ', accuracy)
+    
+    if iteration <= 30:
+        if loss < lowest_loss:
+            best_first = first_layer
+            best_sec = sec_layer
+            lowest_loss = loss
             print('New best: ', lowest_loss)
             print('First Layer: ', best_first)
             print('Sec Layer: ', best_sec)
             print('No Third Layer')
             print('No Fourth Layer')
 
-    if iteration > 24 & iteration <= 48:
-        if np.mean(-np.log(np.sum(accuracy_test * y_test, axis=1))) < lowest_loss:
-            best_first = first_layer[iteration-25]
-            best_sec = sec_layer[iteration-25]
+    if 30 < iteration <= 59:
+        if loss < lowest_loss:
+            best_first = first_layer
+            best_sec = sec_layer
             best_third = third_layer
-            lowest_loss = np.mean(-np.log(np.sum(accuracy_test * y_test, axis=1)))
+            lowest_loss = loss
             print('New best: ', lowest_loss)
             print('First Layer: ', best_first)
             print('Sec Layer: ', best_sec)
             print('Third Layer:', best_third)
             print('No Fourth Layer')
             
-    if iteration > 48 :
-        if np.mean(-np.log(np.sum(accuracy_test * y_test, axis=1))) < lowest_loss:
-            best_first = first_layer[iteration-25]
-            best_sec = sec_layer[iteration-25]
+    if 59 < iteration <= 89:
+        if loss < lowest_loss:
+            best_first = first_layer
+            best_sec = sec_layer
             best_third = third_layer
             best_fourth = fourth_layer
-            lowest_loss = np.mean(-np.log(np.sum(accuracy_test * y_test, axis=1)))
+            lowest_loss = loss
             print('New best: ', lowest_loss)
             print('First Layer: ', best_first)
             print('Sec Layer: ', best_sec)
             print('Third Layer:', best_third)
             print('Best Fourth:', best_fourth)
+            
+    if 89 < iteration <= 119:
+        if loss < lowest_loss:
+            best_first = first_layer
+            best_sec = sec_layer
+            best_third = third_layer
+            best_fourth = fourth_layer
+            best_fifth = fifth_layer
+            lowest_loss = loss
+            print('New best: ', lowest_loss)
+            print('First Layer: ', best_first)
+            print('Sec Layer: ', best_sec)
+            print('Third Layer:', best_third)
+            print('Best Fourth:', best_fourth)
+            print('Best fifth: ', best_fifth)
+            
+    if iteration > 119:
+        if loss < lowest_loss:
+            best_first = first_layer
+            best_sec = sec_layer
+            best_third = third_layer
+            best_fourth = fourth_layer
+            best_fifth = fifth_layer
+            best_sixth = sixth_layer
+            lowest_loss = loss
+            print('New best: ', lowest_loss)
+            print('First Layer: ', best_first)
+            print('Sec Layer: ', best_sec)
+            print('Third Layer:', best_third)
+            print('Best Fourth:', best_fourth)
+            print('Best fifth: ', best_fifth)
+            print('Best Sixth: ', best_sixth)
         
+            
     ann.reset_states() 
     ann.reset_metrics()
     
@@ -172,13 +250,15 @@ for iteration in range(160000):
     
     ann.compile(optimizer='adam' , loss= 'binary_crossentropy', validation_data=(X_train,y_train),metric= 'accuracy')
     #categorical_crossentropy
-    ann.fit(X_train, y_train, batch_size=1, epochs = 300, verbose=0)
+    ann.fit(X_train, y_train, batch_size=1, epochs = 250, verbose=0)
     
 
     #must be 2d array
     accuracy_test = ann.predict(X_test)
-    clip_pred = np.clip(accuracy_test, 1e-7, 1e-7)
-    loss = np.mean(-np.log(np.sum(clip_pred * y_test, axis=1)))
+    clip_pred = np.clip(accuracy_test, 1e-7, 1 - 1e-7)
+    loss =np.mean(-np.log(np.sum(clip_pred * y_test, axis=1)))
+    
+    
     print('Loss: ', loss)
     if iteration <= 399:
         if loss < lowest_loss:
