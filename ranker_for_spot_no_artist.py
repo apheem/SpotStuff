@@ -1,6 +1,5 @@
 import numpy as np
 import pandas as pd
-import keras
 import tensorflow as tf
 
 spotify = pd.read_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\tracks_features.csv', engine='python', encoding='latin-1')
