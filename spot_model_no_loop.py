@@ -26,7 +26,7 @@ ranked[ranked > 3] = 1
 
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder
-
+#currently unused only needed if you have more than 2 catagories
 ct = ColumnTransformer(transformers= [('encoder', OneHotEncoder(),[1])], remainder='passthrough')
 ranked = ct.fit_transform(ranked)
 
@@ -52,7 +52,7 @@ X_train = sc.fit_transform(X_train)
 X_test = sc.transform(X_test)
 
 ann = tf.keras.models.Sequential()
-tf.keras.optimizers.Adam(
+adam = tf.keras.optimizers.Adam(
     learning_rate=0.15,
     beta_1=0.9,
     beta_2=0.999,
@@ -68,19 +68,20 @@ ann.add(tf.keras.layers.Dense(units=9, activation='softplus'))
 
 ann.add(tf.keras.layers.Dense(units=2, activation='sigmoid'))
     #softmax
-    #try linear 
     
-ann.compile(optimizer='adam' , loss= 'binary_crossentropy', validation_data=(X_train,y_train),metric= 'accuracy')
+ann.compile(optimizer=adam , loss= 'binary_crossentropy', validation_data=(X_train,y_train),metric= 'accuracy')
     #categorical_crossentropy
     
-
 ann.fit(X_train, y_train, batch_size=1, epochs = 50, verbose=1)
     
 #ann = tf.keras.models.load_model('C:/Users/cody1/Downloads/py_tut/rankers/Saved/acc71_softplus_lr15.h5')
     #must be 2d array
 accuracy_test = ann.predict(X_test)
+#clipping to avoid log(0)
 clip_pred = np.clip(accuracy_test, 1e-7, 1 - 1e-7)
+#calculating loss
 loss = np.mean(-np.log(np.sum(clip_pred * y_test, axis=1)))
+#calculating accuracy
 accuracy = np.mean(np.argmax(accuracy_test, axis=1) == np.argmax(y_test, axis=1))
 
 print("Loss: ", loss)
@@ -90,16 +91,16 @@ ann.reset_states()
 
 tf.keras.models.save_model(model= ann, filepath='C:/Users/cody1/Downloads/py_tut/rankers/Saved/acc71_softplus_lr15.h5')
 
+#applying to a bigger data set
 codysrank = codysrank.iloc[:,:-1]
 codysrank = np.array(codysrank)
 testedpred= ann.predict(sc.transform(codysrank))
 
 #accuracytest= pd.DataFrame(accuracytest)
+#conveting array to dataframe
 testedpred= pd.DataFrame(testedpred)
-
+#combining a easier to read dataframe
 results= testedpred.iloc[:,-1]
-
-
 codys = pd.concat([spotify_campare,results],axis=1)
-
+#grabbing only songs it is confidient i will like
 codyslim= codys[codys.iloc[:,-1]>0.85]
