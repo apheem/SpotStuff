@@ -1,10 +1,13 @@
 import numpy as np
 import pandas as pd
 import re
+#my client id on my computer
+clientids = pd.read_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\clientids.csv')
 
 spotify = pd.read_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\tracks_features.csv', engine='python', encoding='latin-1')
 #building a smaller dataframe that is smaller and easier to work with for ranking
 spotify_campare = spotify[['name','artists']]
+saved_list = pd.read_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\saved_artist.csv', engine='python', encoding='latin-1')
 
 artist_ids = spotify.iloc[:, 5]
 artist_id_array = np.array(artist_ids)
@@ -19,6 +22,7 @@ for ids in artist_id_array:
     clean_artists.append(ids)
 
 
+
 for i in range(len(clean_artists)):
     clean_artists[i] = clean_artists[i][:22]
 
@@ -27,11 +31,14 @@ import requests
 import datetime
 from urllib.parse import urlencode
 
-client_id = "f8ba7e016c3548a48aad449ab1ba11aa"
-client_secret = "2fabafc2dcef4001a2b4b1cc53b0cf4c"
 
-client_id2 = "c0bd529078254b8ba3e97dcc2be8328b"
-client_secret2 = "7f7fc4926ff74afeb4f6a325130517ad"
+'''please use your own spotify client ID. You can grab one here
+https://developer.spotify.com/discover/'''
+client_id = clientids.iloc[1,1]
+client_secret = clientids.iloc[1,2]
+
+client_id2 = clientids.iloc[2,1]
+client_secret2 = clientids.iloc[2,2]
 
 # class SpotifyAPI(object):
 #     access_token = None
@@ -250,13 +257,12 @@ spotifyid2 = SpotifyAPI(client_id2, client_secret2)
 #     doneyet += 1
 #     print('Grabbing artist: ', doneyet)
     
-artist_list = []   
+artist_list = saved_list.iloc[:,1].values.tolist()
 failed_index = {}
-i = 0 
-doneyet = 0   
+i = len(artist_list)
 failcount = 0
 
-
+print(artist_list[-7:])
 
 while i < len(clean_artists):
     
@@ -265,7 +271,7 @@ while i < len(clean_artists):
         artist_list.append(spotifyid.get_artist(clean_artists[i]))
         i += 1
         doneyet = i
-        print('Grabbing artist: ', doneyet)
+        print('Grabbing artist: ', i)
     
     else:
         print('Failed Restarting last iteration')
@@ -285,9 +291,12 @@ while i < len(clean_artists):
                 i += 1
                 doneyet = i
                 failcount = 0
+    if i % 50000 == 0:
+        saved = pd.DataFrame(artist_list)
+        saved.to_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\saved_artist.csv')
+        print('SAVED')
+        
 
-        continue
-    
 # for i in range(doneyet, len(clean_artists)):
 #     if spotifyid.get_artist(clean_artists[i]) != {}:
 #         artist_list.append(spotifyid.get_artist(clean_artists[i]))
