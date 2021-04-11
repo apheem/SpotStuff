@@ -215,7 +215,7 @@ class SpotifyAPI(object):
         if r.status_code not in range(200, 299):
             return {}
         return r.json()
-    
+     
     def get_album(self, _id):
         return self.get_resource(_id, resource_type='albums')
     
