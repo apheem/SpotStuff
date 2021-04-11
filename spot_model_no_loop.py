@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 
+#grab the file here 
+'''https://www.kaggle.com/rodolfofigueroa/spotify-12m-songs'''
+
 spotify = pd.read_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\tracks_features.csv', engine='python', encoding='latin-1')
 #building a smaller dataframe that is smaller and easier to work with for ranking
 spotify_campare = spotify[['name','artists']]

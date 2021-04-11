@@ -1,3 +1,7 @@
+'''allows you to loop and automatically try different params'''
+#grab the file here 
+'''https://www.kaggle.com/rodolfofigueroa/spotify-12m-songs'''
+
 import numpy as np
 import pandas as pd
 import tensorflow as tf
@@ -256,6 +260,7 @@ for iteration in range(160000):
     accuracy_test = ann.predict(X_test)
     clip_pred = np.clip(accuracy_test, 1e-7, 1 - 1e-7)
     loss =np.mean(-np.log(np.sum(clip_pred * y_test, axis=1)))
+    accuracy = np.mean(np.argmax(accuracy_test, axis=1) == np.argmax(y_test, axis=1))
     
     
     print('Loss: ', loss)
