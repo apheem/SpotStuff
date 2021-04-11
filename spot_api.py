@@ -257,9 +257,10 @@ spotifyid2 = SpotifyAPI(client_id2, client_secret2)
 #     doneyet += 1
 #     print('Grabbing artist: ', doneyet)
     
-artist_list = saved_list.iloc[:,1].values.tolist()
+#artist_list = saved_list.iloc[:,1:].values.tolist()
+artist_list = []
 failed_index = {}
-i = len(artist_list)
+i = 0
 failcount = 0
 
 print(artist_list[-7:])
@@ -291,12 +292,13 @@ while i < len(clean_artists):
                 i += 1
                 doneyet = i
                 failcount = 0
-    if i % 50000 == 0:
+    if i % 10000 == 0:
         saved = pd.DataFrame(artist_list)
         saved.to_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\saved_artist.csv')
         print('SAVED')
         
-
+saved = pd.DataFrame(artist_list)
+saved.to_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\saved_artist.csv')
 # for i in range(doneyet, len(clean_artists)):
 #     if spotifyid.get_artist(clean_artists[i]) != {}:
 #         artist_list.append(spotifyid.get_artist(clean_artists[i]))
