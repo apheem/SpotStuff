@@ -165,10 +165,10 @@ spotifyid = SpotifyAPI(client_id, client_secret)
 spotifyid2 = SpotifyAPI(client_id2, client_secret2)
 
 #uncomment if you have a saved artist list    
-#artist_list = saved_list.iloc[:,1:].values.tolist()
-artist_list = []
+artist_list = saved_list.iloc[:,1:].values.tolist()
+#artist_list = []
 failed_index = {}
-i = 0
+i = len(artist_list)
 failcount = 0
 
 #while iteration is less than length of artist list retrieve artist information at i's index
@@ -177,12 +177,12 @@ failcount = 0
 #else tell me it failed and try again and add 1 to fail count for every retry
 #if fail count goes over 15 try with a new client id, if that fails just append a place holder
 #if iteration can be divided by 10k save if not continue with loop
-
+'''FROM BELOW HERE'''
 while i < len(clean_artists):
     
-    if spotifyid2.get_artist(clean_artists[i]) != {}:
+    if spotifyid.get_artist(clean_artists[i]) != {}:
         failcount = 0
-        artist_list.append(spotifyid2.get_artist(clean_artists[i]))
+        artist_list.append(spotifyid.get_artist(clean_artists[i]))
         i += 1
         doneyet = i
         print('Grabbing artist: ', i)
@@ -194,8 +194,8 @@ while i < len(clean_artists):
         print('Fail Count: ', failcount)
         if failcount > 15:
             print('Trying second client')
-            if spotifyid.get_artist(clean_artists[i]) != {}:
-                artist_list.append(spotifyid.get_artist(clean_artists[i]))
+            if spotifyid2.get_artist(clean_artists[i]) != {}:
+                artist_list.append(spotifyid2.get_artist(clean_artists[i]))
                 failcount = 0
             else:
                 print('Client2 failed, appending NONE')
@@ -205,12 +205,14 @@ while i < len(clean_artists):
                 i += 1
                 doneyet = i
                 failcount = 0
-    #saves every 10k interations
+    #saves every 10k interationsd
     if i % 10000 == 0:
         saved = pd.DataFrame(artist_list)
         saved.to_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\saved_artist.csv')
         print('SAVED')
-        
+'''FROM ABOVE HERE'''   
+
+     
 saved = pd.DataFrame(artist_list)
 saved.to_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\saved_artist.csv')
     
@@ -223,6 +225,9 @@ saved.to_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\saved_artist.csv')
 #if there is a genre grab it, if there isnt append None instead
 #can also check for popularity, just insert name of the key in the dict were genre is
 #should work, has only been tested once
+'''if index and values arent aligned properly'''
+'''artist_list = saved.sort_values()'''
+
 genre_list = []
 doneyet2 = 0
 for genre in artist_list:
