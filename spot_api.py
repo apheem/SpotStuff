@@ -218,7 +218,7 @@ saved.to_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\saved_artist.csv')
     
 #extracting genres
 #may have to convert your artist_list to an array
-#its expecting a dict
+#its expecting a dict or 2d array
 #for each item/list(genre) in the array artist_list
 #check to see if there is a place holder(None)
 #if not check to see if there is actual a genre for the artist
@@ -227,27 +227,163 @@ saved.to_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\saved_artist.csv')
 #should work, has only been tested once
 '''if index and values arent aligned properly'''
 '''artist_list = saved.sort_values()'''
+tester = popularity[-100:]
+
 
 genre_list = []
 doneyet2 = 0
-for genre in artist_list:
-    if genre != 'None':
-        if genre['genres'][0:2] != {}:
-            genre_list.append(genre['genres'][0:2])
+    
+    
+for genre in redeem_pop.values():
+    if isinstance(genre, list):
+        if genre != 'None':
+            if not isinstance(genre[2], float):
+                if len(genre[2].split(',')[:2])!= 0:
+                    genre_list.append(genre[2].split(',')[:2])
+                else:
+                    genre_list.append(['None', 'None'])
+            else:
+                genre_list.append(['None', 'None'])
+            
         else:
-            genre_list.append('None')
+            genre_list.append(['None', 'None'])
+            
     else:
-        genre_list.append('None')
+        if genre != None:
+            if genre != {}:
+                if genre['genres'][:2]:
+                    genre_list.append(genre['genres'][:2])
+                else:
+                    genre_list.append(['None', 'None'])
+            else:
+                genre_list.append(['None', 'None'])
+        else:
+            genre_list.append(['None', 'None'])   
+
     doneyet2 += 1
     print('genre extracted: ', doneyet2)
-       
-saved_genres = pd.DataFrame(genre_list.copy())
+    
+for genre in range(len(genre_list)):
+    if genre_list[genre][0] == '[]':
+        genre_list[genre] = ['None', 'None']
+
+clean_genre = []
+for i in genre_list:
+    for g in range(len(i)):    
+        i[g] = re.sub(r"\'","",i[g])
+        i[g] = re.sub(r"\[","",i[g])
+        i[g] = re.sub(r"\]","",i[g])
+    clean_genre.append(i)
+    
+
+saved_genres = pd.DataFrame(clean_genre.copy())
 saved_genres.to_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\saved_genres.csv')
-  
+ 
+
+popularity = []
+doneyet2 = 0 
+for pop in redeem_pop.values():
+    if isinstance(pop, list):
+        if pop != 'None':
+            if not isinstance(pop[7], float):
+                if len(pop[7])!= 0:
+                    if pop[7] != 'popularity':
+                        popularity.append(float(pop[7]))
+                    else:
+                        popularity.append('Error')
+                else:
+                    popularity.append(0)
+            else:
+                popularity.append(0)
+            
+        else:
+            popularity.append(0)
+            
+    else:
+        if pop != None:
+            if pop != {}:
+                if pop['popularity']:
+                    if pop['popularity'] != 'popularity':
+                        popularity.append(float(pop['popularity']))
+                    else:
+                        popularity.append('Error')
+                else:
+                    popularity.append(0)
+            else:
+                popularity.append(0)
+        else:
+            popularity.append(0)   
+
+    doneyet2 += 1
+    print('Pop extracted: ', doneyet2)
+    
+saved_pop = pd.DataFrame(popularity)
+saved_pop.to_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\saved_pop.csv')
+
+popularity_loaded = pd.read_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\saved_pop.csv')
+popularity_loaded = popularity_loaded.iloc[:,1].values.tolist()
+
+error_loc = []
+for i in range(len(popularity_loaded)):
+    if popularity_loaded[i] == 'Error':
+        error_loc.append(i)
 
 
 
 
+redeem_pop = {}
+i = 0
+while i < (len(error_loc)):
+    
+    if spotifyid.get_artist(clean_artists[error_loc[i]]) != {}:
+        failcount = 0
+        redeem_pop[error_loc[i]] = spotifyid.get_artist(clean_artists[error_loc[i]])
+        i += 1
+        doneyet = i
+        print('Grabbing artist: ', error_loc[i])
+    
+    else:
+        print('Failed Restarting last iteration')
+        
+        failcount += 1
+        print('Fail Count: ', failcount)
+        if failcount > 15:
+            print('Trying second client')
+            if spotifyid2.get_artist(clean_artists[i]) != {}:
+                redeem_pop[error_loc[i]] = spotifyid2.get_artist(clean_artists[error_loc[i]])
+                failcount = 0
+                i += 1
+            else:
+                print('Client2 failed, appending NONE')
+                artist_list.append('None')
+                failed_index[error_loc[i]] = clean_artists[error_loc[i]]
+                i += 1
+                doneyet = i
+                failcount = 0
+    #saves every 10k interationsd
+    if i % 10000 == 0:
+        saved_redeem = pd.DataFrame(redeem_pop.values())
+        saved_redeem.to_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\saved_redeem.csv')
+        print('SAVED')
+        
+saved_genre = pd.read_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\saved_genres.csv') 
+saved_genre = saved_genre.iloc[:,1:].values.tolist() 
+       
+for i in range(len(error_loc)):
+    saved_genre.pop(error_loc[i])
+    saved_genre.insert(error_loc[i], clean_genre[i])
+    
+    
+saved_pop = pd.DataFrame(popularity_loaded)
+saved_pop.to_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\saved_pop.csv')
+   
+saved_genres = pd.DataFrame(saved_genre)
+saved_genres.to_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\saved_genres.csv')
+    
+            
+# waiting = datetime.datetime.now()
+# trigger = waiting.second + datetime.timedelta(seconds=10)
+# while waiting < trigger:
+#     continue
 
-
-
+# print('time')
