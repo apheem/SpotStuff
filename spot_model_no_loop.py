@@ -13,12 +13,25 @@ spotify_campare = spotify[['name','artists']]
 spotify_slim = pd.read_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\spotslim.csv', engine='python', encoding='latin-1')
 spotify_slim.set_index('name', inplace=True)
 
-#whereimat= spotify_slim[spotify_slim['rank']>0]
-codysrank = spotify_slim.iloc[:,2:]
-#codysrank.to_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\codysrank.csv')
-codysrankSM = codysrank[codysrank['rank']>0]
+# genre_token = pd.read_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\genre_token.csv')
+# genre_token = genre_token.iloc[:,1:]
 
-ranked = codysrankSM.iloc[:,-2:]
+genre_embedding = np.load('C:/Users/cody1/Downloads/py_tut/rankers/genre_embeddings.npy')
+
+
+#whereimat= spotify_slim[spotify_slim['rank']>0]
+codysrank = spotify_slim[['danceability', 'energy', 'mode', 'acousticness', 'year', 'rank' ]]
+
+
+codysrank = np.concatenate((genre_embedding, np.array(codysrank)), axis=1)
+
+codysrank = pd.DataFrame(codysrank)
+
+
+#codysrank.to_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\codysrank.csv')
+codysrankSM = codysrank[codysrank[9]>0]
+
+ranked = codysrankSM.iloc[:,-1]
 SPfeatures = codysrankSM.iloc[:,:-1]
 SPfeatures = np.array(SPfeatures)
 
@@ -27,15 +40,23 @@ SPfeatures = np.array(SPfeatures)
 ranked[ranked <=3 ] = 0
 ranked[ranked > 3] = 1
 
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder
-#currently unused only needed if you have more than 2 catagories
-ct = ColumnTransformer(transformers= [('encoder', OneHotEncoder(),[1])], remainder='passthrough')
-ranked = ct.fit_transform(ranked)
+ranked = ranked.values.tolist()
+ranked_ = []
+for rank in ranked:
+    if rank == 1.0:
+        ranked_.append([0,1])
+    else:
+        ranked_.append([1,0])
 
-ranked= pd.DataFrame(ranked)
-ranked= ranked.iloc[:,:-1]
-ranked = np.array(ranked)
+# from sklearn.compose import ColumnTransformer
+# from sklearn.preprocessing import OneHotEncoder
+# #currently unused only needed if you have more than 2 catagories
+# ct = ColumnTransformer(transformers= [('encoder', OneHotEncoder(),[1])], remainder='passthrough')
+# ranked = ct.fit_transform(ranked)
+
+# ranked= pd.DataFrame(ranked)
+# ranked= ranked.iloc[:,:-1]
+ranked = np.array(ranked_)
 
 
 
@@ -56,7 +77,7 @@ X_test = sc.transform(X_test)
 
 ann = tf.keras.models.Sequential()
 adam = tf.keras.optimizers.Adam(
-    learning_rate=0.15,
+    learning_rate=0.05,
     beta_1=0.9,
     beta_2=0.999,
     epsilon=1e-07,
@@ -64,7 +85,7 @@ adam = tf.keras.optimizers.Adam(
     name="adam"
 )
 
-ann.add(tf.keras.layers.Dense(units=11, activation='softplus'))
+ann.add(tf.keras.layers.Dense(units=20, activation='softplus'))
 #ann.add(tf.keras.layers.Dropout(0.2))
 ann.add(tf.keras.layers.Dense(units=9, activation='softplus'))
 #ann.add(tf.keras.layers.Dense(units=third_layer, activation='relu'))
@@ -72,10 +93,10 @@ ann.add(tf.keras.layers.Dense(units=9, activation='softplus'))
 ann.add(tf.keras.layers.Dense(units=2, activation='sigmoid'))
     #softmax
     
-ann.compile(optimizer=adam , loss= 'binary_crossentropy', validation_data=(X_train,y_train),metric= 'accuracy')
+ann.compile(optimizer=adam , loss= 'binary_crossentropy')
     #categorical_crossentropy
     
-ann.fit(X_train, y_train, batch_size=1, epochs = 50, verbose=1)
+ann.fit(X_train, y_train, batch_size=16, epochs = 400, verbose=1)
     
 #ann = tf.keras.models.load_model('C:/Users/cody1/Downloads/py_tut/rankers/Saved/acc71_softplus_lr15.h5')
     #must be 2d array
@@ -99,11 +120,19 @@ codysrank = codysrank.iloc[:,:-1]
 codysrank = np.array(codysrank)
 testedpred= ann.predict(sc.transform(codysrank))
 
+pop = pd.read_csv('C:\\Users\\cody1\\Downloads\\py_tut\\rankers\\saved_pop.csv', engine='python', encoding='latin-1')
+pop = np.array(pop.iloc[:,1:])
+
+testedpred = np.concatenate((testedpred, pop), axis=1)
 #accuracytest= pd.DataFrame(accuracytest)
 #conveting array to dataframe
 testedpred= pd.DataFrame(testedpred)
 #combining a easier to read dataframe
-results= testedpred.iloc[:,-1]
+results= testedpred.iloc[:,-2:]
 codys = pd.concat([spotify_campare,results],axis=1)
 #grabbing only songs it is confidient i will like
-codyslim= codys[codys.iloc[:,-1]>0.85]
+codyslim= codys[codys.iloc[:,-1]>40]
+codyslim= codyslim[codyslim.iloc[:,-2]>.7]
+
+testedpred.to_csv('C:/Users/cody1/Downloads/py_tut/rankers/Saved/w_embedding_song.csv')
+codyslim.to_csv('C:/Users/cody1/Downloads/py_tut/rankers/Saved/norrow_song.csv')
